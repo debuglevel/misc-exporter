@@ -12,6 +12,7 @@ type miscCollector struct {
 	sshSessionsMetric      *prometheus.Desc
 	ansibleProcessesMetric *prometheus.Desc
 	performanceMetric      *prometheus.Desc
+	passmarkMetric         *prometheus.Desc
 }
 
 func newMiscCollector() *miscCollector {
@@ -40,6 +41,12 @@ func newMiscCollector() *miscCollector {
 			nil,
 			nil,
 		),
+		passmarkMetric: prometheus.NewDesc(
+			"misc_passmark_singlethreadedrating",
+			"Single-Threaded Rating of the CPU on PassMark",
+			nil,
+			nil,
+		),
 	}
 }
 
@@ -48,11 +55,15 @@ func (collector *miscCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- collector.sshSessionsMetric
 	ch <- collector.ansibleProcessesMetric
 	ch <- collector.performanceMetric
+	ch <- collector.passmarkMetric
 }
 
 func (collector *miscCollector) Collect(ch chan<- prometheus.Metric) {
 	loggedInUsers := prometheus.MustNewConstMetric(collector.loggedInUsersMetric, prometheus.GaugeValue, float64(GetLoggedInUsers()))
 	ch <- loggedInUsers
+
+	passmark := prometheus.MustNewConstMetric(collector.passmarkMetric, prometheus.GaugeValue, float64(GetSingleThreadedRating()))
+	ch <- passmark
 
 	ansibleProcesses_, ansibleProcessesErr := GetAnsibleProcesses()
 	if ansibleProcessesErr == nil {
