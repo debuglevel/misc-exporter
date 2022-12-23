@@ -98,6 +98,7 @@ func main() {
 	myMiscCollector := newMiscCollector()
 	prometheus.MustRegister(myMiscCollector)
 
+	log.Println("Serving...")
 	http.Handle("/metrics", promhttp.Handler())
 	log.Fatal(http.ListenAndServe(":9101", nil))
 }
