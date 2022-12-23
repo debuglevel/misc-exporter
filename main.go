@@ -11,6 +11,7 @@ type miscCollector struct {
 	loggedInUsersMetric    *prometheus.Desc
 	sshSessionsMetric      *prometheus.Desc
 	ansibleProcessesMetric *prometheus.Desc
+	performanceMetric      *prometheus.Desc
 }
 
 func newMiscCollector() *miscCollector {
@@ -33,6 +34,12 @@ func newMiscCollector() *miscCollector {
 			nil,
 			nil,
 		),
+		performanceMetric: prometheus.NewDesc(
+			"misc_performance",
+			"How often the performance evaluation function could be called within a certain duration",
+			nil,
+			nil,
+		),
 	}
 }
 
@@ -40,22 +47,28 @@ func (collector *miscCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- collector.loggedInUsersMetric
 	ch <- collector.sshSessionsMetric
 	ch <- collector.ansibleProcessesMetric
+	ch <- collector.performanceMetric
 }
 
 func (collector *miscCollector) Collect(ch chan<- prometheus.Metric) {
-	sshSessions_, sshSessionsErr := GetSshSessions()
-	ansibleProcesses_, ansibleProcessesErr := GetAnsibleProcesses()
-
 	loggedInUsers := prometheus.MustNewConstMetric(collector.loggedInUsersMetric, prometheus.GaugeValue, float64(GetLoggedInUsers()))
-	sshSessions := prometheus.MustNewConstMetric(collector.sshSessionsMetric, prometheus.GaugeValue, float64(sshSessions_))
-	ansibleProcesses := prometheus.MustNewConstMetric(collector.ansibleProcessesMetric, prometheus.GaugeValue, float64(ansibleProcesses_))
-
 	ch <- loggedInUsers
+
+	ansibleProcesses_, ansibleProcessesErr := GetAnsibleProcesses()
+	if ansibleProcessesErr == nil {
+		ansibleProcesses := prometheus.MustNewConstMetric(collector.ansibleProcessesMetric, prometheus.GaugeValue, float64(ansibleProcesses_))
+		ch <- ansibleProcesses
+	}
+
+	sshSessions_, sshSessionsErr := GetSshSessions()
 	if sshSessionsErr == nil {
+		sshSessions := prometheus.MustNewConstMetric(collector.sshSessionsMetric, prometheus.GaugeValue, float64(sshSessions_))
 		ch <- sshSessions
 	}
-	if ansibleProcessesErr == nil {
-		ch <- ansibleProcesses
+
+	if IsItAGoodTimeToEvaluatePerformance() {
+		performance := prometheus.MustNewConstMetric(collector.performanceMetric, prometheus.GaugeValue, GetPerformance())
+		ch <- performance
 	}
 }
 

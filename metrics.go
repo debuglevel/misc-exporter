@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // GetLoggedInUsers gets the current count of logged-in users (i.e. have a shell associated).
@@ -75,4 +76,40 @@ func GetAnsibleProcesses() (int, error) {
 
 	log.Printf("Got Ansible processes: %v\n", ansibleProcesses)
 	return ansibleProcesses, nil
+}
+
+func IsItAGoodTimeToEvaluatePerformance() bool {
+	now := time.Now()
+	hour := now.Hour()
+	minute := now.Minute()
+
+	if hour == 6 && minute >= 00 || hour == 6 && minute <= 10 {
+		return true
+	} else {
+		return false
+	}
+}
+
+// GetPerformance calculates a single-threaded performance indicator
+func GetPerformance() float64 {
+	log.Println("Getting performance...")
+
+	maximumPrime := 1000
+	seconds := 500 * time.Millisecond
+
+	start := time.Now()
+	iterations := 0
+
+	for ; time.Since(start) < seconds; iterations++ {
+		getPrimes(maximumPrime)
+	}
+	elapsed := time.Since(start)
+	secondsPerIteration := elapsed.Seconds() / float64(iterations)
+	iterationsPerSecond := float64(iterations) / elapsed.Seconds()
+	fmt.Printf("%v iterations took %s; %vs per iteration; %v iterations per second\n", iterations, elapsed, secondsPerIteration, iterationsPerSecond)
+
+	performance := iterationsPerSecond
+
+	log.Printf("Got performance: %v\n", performance)
+	return performance
 }
