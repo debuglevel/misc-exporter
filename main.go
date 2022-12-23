@@ -16,6 +16,8 @@ type miscCollector struct {
 }
 
 func newMiscCollector() *miscCollector {
+	log.Println("Creating collector...")
+
 	return &miscCollector{
 		loggedInUsersMetric: prometheus.NewDesc(
 			"misc_logged_in_users_count",
@@ -51,6 +53,8 @@ func newMiscCollector() *miscCollector {
 }
 
 func (collector *miscCollector) Describe(ch chan<- *prometheus.Desc) {
+	log.Println("Describing...")
+
 	ch <- collector.loggedInUsersMetric
 	ch <- collector.sshSessionsMetric
 	ch <- collector.ansibleProcessesMetric
@@ -59,20 +63,25 @@ func (collector *miscCollector) Describe(ch chan<- *prometheus.Desc) {
 }
 
 func (collector *miscCollector) Collect(ch chan<- prometheus.Metric) {
+	log.Println("Collecting...")
+
 	loggedInUsers := prometheus.MustNewConstMetric(collector.loggedInUsersMetric, prometheus.GaugeValue, float64(GetLoggedInUsers()))
 	ch <- loggedInUsers
 
-	passmark := prometheus.MustNewConstMetric(collector.passmarkMetric, prometheus.GaugeValue, float64(GetSingleThreadedRating()))
-	ch <- passmark
+	rating, err := GetSingleThreadedRating()
+	if err == nil {
+		passmark := prometheus.MustNewConstMetric(collector.passmarkMetric, prometheus.GaugeValue, float64(rating))
+		ch <- passmark
+	}
 
-	ansibleProcesses_, ansibleProcessesErr := GetAnsibleProcesses()
-	if ansibleProcessesErr == nil {
+	ansibleProcesses_, err := GetAnsibleProcesses()
+	if err == nil {
 		ansibleProcesses := prometheus.MustNewConstMetric(collector.ansibleProcessesMetric, prometheus.GaugeValue, float64(ansibleProcesses_))
 		ch <- ansibleProcesses
 	}
 
-	sshSessions_, sshSessionsErr := GetSshSessions()
-	if sshSessionsErr == nil {
+	sshSessions_, err := GetSshSessions()
+	if err == nil {
 		sshSessions := prometheus.MustNewConstMetric(collector.sshSessionsMetric, prometheus.GaugeValue, float64(sshSessions_))
 		ch <- sshSessions
 	}
@@ -84,6 +93,8 @@ func (collector *miscCollector) Collect(ch chan<- prometheus.Metric) {
 }
 
 func main() {
+	log.Println("Starting...")
+
 	myMiscCollector := newMiscCollector()
 	prometheus.MustRegister(myMiscCollector)
 

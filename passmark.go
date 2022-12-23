@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"github.com/shirou/gopsutil/cpu"
 	"io"
@@ -37,12 +38,12 @@ func GetCpuIdentifier() (string, error) {
 func GetBenchmarkPage(cpuIdentifier string) (string, error) {
 	log.Println("Getting Passmark CPU benchmark page...")
 
-	url := "https://www.cpubenchmark.net/cpu.php?cpu=" + url.QueryEscape(cpuIdentifier)
+	url_ := "https://www.cpubenchmark.net/cpu.php?cpu=" + url.QueryEscape(cpuIdentifier)
 
-	response, err := http.Get(url)
+	response, err := http.Get(url_)
 	if err != nil {
 		fmt.Println(err)
-		return "", fmt.Errorf("getting %s failed", url)
+		return "", fmt.Errorf("getting URL %s failed", url_)
 	}
 	defer response.Body.Close()
 
@@ -73,10 +74,24 @@ func ExtractSingleThreadedRating(html string) (int, error) {
 	return singleThreadedRating, nil
 }
 
-func GetSingleThreadedRating() int {
-	cpuIdentifier, _ := GetCpuIdentifier()
-	html, _ := GetBenchmarkPage(cpuIdentifier)
-	singleThreadedRating, _ := ExtractSingleThreadedRating(html)
+func GetSingleThreadedRating() (int, error) {
+	cpuIdentifier, err := GetCpuIdentifier()
+	if err != nil {
+		fmt.Println(err)
+		return -1, errors.New("getting cpu identifier failed")
+	}
 
-	return singleThreadedRating
+	html, _ := GetBenchmarkPage(cpuIdentifier)
+	if err != nil {
+		fmt.Println(err)
+		return -1, errors.New("getting PassMark webpage failed")
+	}
+
+	singleThreadedRating, _ := ExtractSingleThreadedRating(html)
+	if err != nil {
+		fmt.Println(err)
+		return -1, errors.New("extracting single-threaded rating failed")
+	}
+
+	return singleThreadedRating, nil
 }
