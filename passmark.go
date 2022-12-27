@@ -67,7 +67,7 @@ func ExtractSingleThreadedRating(html string) (int, error) {
 	re := regexp.MustCompile(`<strong>Single Thread Rating:</strong> (.*?)<br>`)
 	match := re.FindStringSubmatch(html)
 	if match == nil {
-	  return nil, fmt.Errorf("regexp did not match anything")
+	  return -1, fmt.Errorf("regexp did not match anything")
 	}
 	result := match[1]
 
