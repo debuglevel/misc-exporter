@@ -27,7 +27,7 @@ func GetCpuIdentifier() (string, error) {
 	for _, ci := range info {
 		//fmt.Printf("CPU manufacturer: %s\n", ci.VendorID)
 		//fmt.Printf("CPU model: %s\n", ci.ModelName)
-		log.Println("CPU info: %v", ci)
+		log.Printf("CPU info: %v\n", ci)
 		cpuIdentifier = ci.ModelName
 	}
 
