@@ -27,7 +27,7 @@ func GetCpuIdentifier() (string, error) {
 	for _, ci := range info {
 		//fmt.Printf("CPU manufacturer: %s\n", ci.VendorID)
 		//fmt.Printf("CPU model: %s\n", ci.ModelName)
-
+		log.Printf("CPU info: %v\n", ci)
 		cpuIdentifier = ci.ModelName
 	}
 
@@ -66,6 +66,9 @@ func ExtractSingleThreadedRating(html string) (int, error) {
 
 	re := regexp.MustCompile(`<strong>Single Thread Rating:</strong> (.*?)<br>`)
 	match := re.FindStringSubmatch(html)
+	if match == nil {
+	  return -1, fmt.Errorf("regexp did not match anything")
+	}
 	result := match[1]
 
 	singleThreadedRating, _ := strconv.Atoi(result)

@@ -51,6 +51,7 @@ func GetSshSessions() (int, error) {
 		return -1, errors.New("converting output to integer failed")
 	}
 
+	log.Printf("Got SSH sessions: %v\n", sshSessions)
 	return sshSessions, nil
 }
 
