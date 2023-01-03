@@ -3,6 +3,8 @@ package main
 import (
 	"net/http"
 
+	"flag"
+
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.uber.org/zap"
@@ -94,8 +96,24 @@ func (collector *miscCollector) Collect(ch chan<- prometheus.Metric) {
 }
 
 func main() {
+	loglevelPtr := flag.String("loglevel", "info", "log level (debug, info, warn, error, fatal)")
+	flag.Parse()
+
+	var level zap.AtomicLevel
+	if *loglevelPtr == "debug" {
+		level = zap.NewAtomicLevelAt(zap.DebugLevel)
+	} else if *loglevelPtr == "info" {
+		level = zap.NewAtomicLevelAt(zap.InfoLevel)
+	} else if *loglevelPtr == "warn" {
+		level = zap.NewAtomicLevelAt(zap.WarnLevel)
+	} else if *loglevelPtr == "error" {
+		level = zap.NewAtomicLevelAt(zap.ErrorLevel)
+	} else {
+		level = zap.NewAtomicLevelAt(zap.FatalLevel)
+	}
+
 	loggerConfig := zap.Config{
-		Level:            zap.NewAtomicLevelAt(zap.DebugLevel),
+		Level:            level,
 		Encoding:         "console",
 		EncoderConfig:    zap.NewDevelopmentEncoderConfig(),
 		OutputPaths:      []string{"stderr"},
