@@ -1,10 +1,11 @@
 package main
 
 import (
+	"net/http"
+
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"log"
-	"net/http"
+	"go.uber.org/zap"
 )
 
 type miscCollector struct {
@@ -16,7 +17,7 @@ type miscCollector struct {
 }
 
 func newMiscCollector() *miscCollector {
-	log.Println("Creating collector...")
+	zap.L().Debug("Creating collector...")
 
 	return &miscCollector{
 		loggedInUsersMetric: prometheus.NewDesc(
@@ -53,7 +54,7 @@ func newMiscCollector() *miscCollector {
 }
 
 func (collector *miscCollector) Describe(ch chan<- *prometheus.Desc) {
-	log.Println("Describing...")
+	zap.L().Debug("Describing...")
 
 	ch <- collector.loggedInUsersMetric
 	ch <- collector.sshSessionsMetric
@@ -63,7 +64,7 @@ func (collector *miscCollector) Describe(ch chan<- *prometheus.Desc) {
 }
 
 func (collector *miscCollector) Collect(ch chan<- prometheus.Metric) {
-	log.Println("Collecting...")
+	zap.L().Debug("Collecting...")
 
 	loggedInUsers := prometheus.MustNewConstMetric(collector.loggedInUsersMetric, prometheus.GaugeValue, float64(GetLoggedInUsers()))
 	ch <- loggedInUsers
@@ -93,12 +94,23 @@ func (collector *miscCollector) Collect(ch chan<- prometheus.Metric) {
 }
 
 func main() {
-	log.Println("Starting...")
+	loggerConfig := zap.Config{
+		Level:            zap.NewAtomicLevelAt(zap.DebugLevel),
+		Encoding:         "console",
+		EncoderConfig:    zap.NewDevelopmentEncoderConfig(),
+		OutputPaths:      []string{"stderr"},
+		ErrorOutputPaths: []string{"stderr"},
+	}
+	logger, _ := loggerConfig.Build()
+	defer logger.Sync() // nolint:errcheck // not sure how to errcheck a deferred call like this
+	zap.ReplaceGlobals(logger)
+
+	zap.L().Info("Starting...")
 
 	myMiscCollector := newMiscCollector()
 	prometheus.MustRegister(myMiscCollector)
 
-	log.Println("Serving...")
+	zap.L().Info("Serving...")
 	http.Handle("/metrics", promhttp.Handler())
-	log.Fatal(http.ListenAndServe("127.0.0.1:9886", nil))
+	zap.L().Fatal(http.ListenAndServe("127.0.0.1:9886", nil).Error())
 }

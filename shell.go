@@ -2,14 +2,15 @@ package main
 
 import (
 	"bytes"
-	"log"
 	"os/exec"
+
+	"go.uber.org/zap"
 )
 
 // ShellExecute executes a command using bash.
 // Borrowed from https://stackoverflow.com/a/43246464/4764279
 func ShellExecute(command string) (string, string, error) {
-	log.Printf("Executing %v using shell...\n", command)
+	zap.S().Debugf("Executing %v using shell...\n", command)
 
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
@@ -20,6 +21,6 @@ func ShellExecute(command string) (string, string, error) {
 
 	err := cmd.Run()
 
-	log.Printf("Executed %v using shell\n", command)
+	zap.S().Debugf("Executed %v using shell\n", command)
 	return stdout.String(), stderr.String(), err
 }

@@ -2,7 +2,7 @@ package main
 
 // Borrowed from ChatGPT
 func getPrimes(maximum int) []int {
-	//log.Printf("Getting primes up to %v...\n", maximum)
+	//zap.S().Debugf("Getting primes up to %v...\n", maximum)
 
 	// Create a slice to store the primes
 	var primes []int
@@ -23,7 +23,7 @@ func getPrimes(maximum int) []int {
 
 		// If the number is prime, add it to the slice of primes
 		if isPrime {
-			//log.Printf("Found prime %v\n", i)
+			//zap.S().Debugf("Found prime %v\n", i)
 			primes = append(primes, i)
 		}
 	}
