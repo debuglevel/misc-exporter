@@ -42,7 +42,7 @@ func newMiscCollector() *miscCollector {
 		),
 		performanceMetric: prometheus.NewDesc(
 			"misc_performance",
-			"How often the performance evaluation function could be called within a certain duration",
+			"How often the performance evaluation function could be called (on a single thread) within a certain duration",
 			nil,
 			nil,
 		),
